@@ -17,7 +17,7 @@ export default function Home() {
   }, []);
 
   async function loadNFTs(){
-    const provider = new ethers.providers.JsonRpcProvider("https://polygon-mumbai.infura.io/v3/4fa55521d0f647f28c1a179e85f454da");
+    const provider = new ethers.providers.JsonRpcProvider();
     const tokenContract = new ethers.Contract(nftaddress, NFT.abi, provider);
     const marketContract = new ethers.Contract(nftmarketaddress, Market.abi, provider);
 
@@ -98,6 +98,7 @@ export default function Home() {
                   {nft.price} ETH
                 </p>
                 <button className="w-full bg-pink-500 text-white font-bold py-2 px-12 rounded"
+                
                 onClick={() => buyNFT(nft)}>Buy NFT</button>
             </div>
             </div>

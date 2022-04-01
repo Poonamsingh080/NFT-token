@@ -4,6 +4,7 @@ import { create as ipfsHttpClient } from 'ipfs-http-client'
 import { useRouter } from 'next/router'
 import Web3Modal from 'web3modal'
 
+
 const client = ipfsHttpClient('https://ipfs.infura.io:5001/api/v0');
 
 import {
@@ -12,7 +13,7 @@ import {
 import NFT from '../artifacts/contracts/NFT.sol/NFT.json';
 import Market from '../artifacts/contracts/NFTMarket.sol/NFTMarket.json';
 import { EtherscanProvider } from '@ethersproject/providers'
-import Image from 'next/Image'
+import Image from 'next/image'
 
 
 export default function CreateItem() {
@@ -31,6 +32,7 @@ export default function CreateItem() {
             )
             //file saved in the url path below
             const url = `https://ipfs.infura.io/ipfs/${added.path}`
+            alert(added.path)
             setFileUrl(url)
         }catch(e){
             console.log('Error uploading file: ', e)
