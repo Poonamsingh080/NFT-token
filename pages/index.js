@@ -9,6 +9,7 @@ import Image from 'next/image'
 
 export default function Home() {
   const [nfts, setNfts] = useState([]);
+  const [sold , setSold] = useState([])
   const [loadingState, setLoadingState] = useState('not-loaded');
 
   useEffect(()=>{
@@ -16,33 +17,75 @@ export default function Home() {
 
   }, []);
 
-  async function loadNFTs(){
-    const provider = new ethers.providers.JsonRpcProvider();
-    const tokenContract = new ethers.Contract(nftaddress, NFT.abi, provider);
-    const marketContract = new ethers.Contract(nftmarketaddress, Market.abi, provider);
+  async function loadNFTs() {
+    const web3Modal = new Web3Modal(
+        //     {
+        //   network: "mainnet",
+        //   cacheProvider: true,
+        // }
+    )
+    const connection = await web3Modal.connect()
+    const provider = new ethers.providers.Web3Provider(connection)
+    const signer = provider.getSigner()
 
-    //return an array of unsold market items
-    const data = await marketContract.fetchMarketItems();
+    const marketContract = new ethers.Contract(nftmarketaddress, Market.abi, signer)
+    const tokenContract = new ethers.Contract(nftaddress, NFT.abi, provider)
+    const data = await marketContract.fetchItemsCreated()
 
+
+    console.log(data, "data----------------------")
     const items = await Promise.all(data.map(async i => {
-       const tokenUri = await tokenContract.tokenURI(i.tokenId);
-       const meta = await axios.get(tokenUri);
-       let price = ethers.utils.formatUnits(i.price.toString(), 'ether')
-       let item = {
-         price,
-         tokenId: i.tokenId.toNumber(),
-         seller: i.seller,
-         owner: i.owner,
-         image: meta.data.image,
-         name: meta.data.name,
-         description: meta.data.description,
-       }
-       return item;
-    }));
+        const tokenUri = await tokenContract.tokenURI(i.tokenId)
+        console.log(i.tokenId, "tokenID--------------------")
+        console.log(tokenUri, "tokenURI-------------------------------")
+        const meta = await axios.get(tokenUri)
+        let price = ethers.utils.formatUnits(i.price.toString(), 'ether')
+        console.log(meta, "meta------------")
+        console.log(price, "price-----------------------")
+        let item = {
+            price,
+            tokenId: i.tokenId.toNumber(),
+            seller: i.seller,
+            owner: i.owner,
+            sold: i.sold,
+            image: meta.data.image,
+        }
+        return item
+    }))
 
-    setNfts(items);
+    // / create a filtered array of items that have been sold /
+    const soldItems = items.filter(i => i.sold)
+    setSold(soldItems)
+    setNfts(items)
     setLoadingState('loaded')
-  }
+}
+  // async function loadNFTs(){
+  //   const provider = new ethers.providers.JsonRpcProvider();
+  //   const tokenContract = new ethers.Contract(nftaddress, NFT.abi, provider);
+  //   const marketContract = new ethers.Contract(nftmarketaddress, Market.abi, provider);
+
+  //   //return an array of unsold market items
+  //   const data = await marketContract.fetchMarketItems();
+
+  //   const items = await Promise.all(data.map(async i => {
+  //      const tokenUri = await tokenContract.tokenURI(i.tokenId);
+  //      const meta = await axios.get(tokenUri);
+  //      let price = ethers.utils.formatUnits(i.price.toString(), 'ether')
+  //      let item = {
+  //        price,
+  //        tokenId: i.tokenId.toNumber(),
+  //        seller: i.seller,
+  //        owner: i.owner,
+  //        image: meta.data.image,
+  //        name: meta.data.name,
+  //        description: meta.data.description,
+  //      }
+  //      return item;
+  //   }));
+
+  //   setNfts(items);
+  //   setLoadingState('loaded')
+  // }
 
   async function buyNFT(nft){
     const web3Modal = new Web3Modal();
